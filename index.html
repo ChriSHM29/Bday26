@@ -16,17 +16,14 @@
     --petal: #e8a0b0;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: 100%; min-height: 100%; }
+  html { height: 100%; }
   body {
     background: var(--deep);
     font-family: 'Cormorant Garamond', serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     min-height: 100vh;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
-  body.opened { overflow: auto; }
 
   /* ── STARFIELD ── */
   #stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
@@ -53,36 +50,43 @@
     to   { filter: hue-rotate(20deg); }
   }
 
-  /* ── LAYOUT ── */
-  #stage {
+  /* ── MAIN WRAPPER ── */
+  #page-wrapper {
     position: relative;
     z-index: 1;
+    min-height: 100vh;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* ── STAGE (horizontal flex row) ── */
+  #stage {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
     justify-content: center;
-    gap: 0;
     width: 100%;
-    padding: 20px 0;
+    padding: 40px 0 60px;
+    gap: 0;
   }
 
   /* ── DECORATIVE SIDE PANELS ── */
   .side-panel {
-    width: clamp(80px, 10vw, 140px);
+    width: clamp(70px, 9vw, 130px);
     flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
     opacity: 0;
-    transition: opacity 1.2s ease;
+    transition: opacity 1.4s ease;
     pointer-events: none;
-    align-self: stretch;
+    position: sticky;
+    top: 30px;
+    align-self: flex-start;
   }
   .side-panel.visible { opacity: 1; }
   .side-panel svg { width: 100%; height: auto; display: block; }
   .side-panel.right { transform: scaleX(-1); }
 
-  /* Floating botanical animation */
   .branch-float {
     animation: branchFloat 6s ease-in-out infinite alternate;
     transform-origin: 50% 100%;
@@ -95,36 +99,41 @@
     from { transform: rotate(-2deg); }
     to   { transform: rotate(2deg); }
   }
-  .petal-glow {
-    animation: petalGlow 3s ease-in-out infinite alternate;
-  }
+  .petal-glow { animation: petalGlow 3s ease-in-out infinite alternate; }
   @keyframes petalGlow {
     from { opacity: 0.7; filter: drop-shadow(0 0 4px rgba(200,86,110,.4)); }
-    to   { opacity: 1; filter: drop-shadow(0 0 10px rgba(200,86,110,.8)); }
+    to   { opacity: 1;   filter: drop-shadow(0 0 10px rgba(200,86,110,.8)); }
   }
-  .gold-glow {
-    animation: goldGlow 4s ease-in-out infinite alternate;
-  }
+  .gold-glow { animation: goldGlow 4s ease-in-out infinite alternate; }
   @keyframes goldGlow {
     from { opacity: 0.6; filter: drop-shadow(0 0 3px rgba(201,168,76,.3)); }
-    to   { opacity: 1; filter: drop-shadow(0 0 10px rgba(201,168,76,.9)); }
+    to   { opacity: 1;   filter: drop-shadow(0 0 10px rgba(201,168,76,.9)); }
   }
 
-  /* ── SCENE ── */
-  #scene {
-    position: relative;
-    width: min(420px, 88vw);
-    flex-shrink: 0;
+  /* ── CENTER COLUMN ── */
+  #center-col {
+    flex: 0 0 auto;
+    width: min(430px, 86vw);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 0;
   }
-  body.opened #scene { margin: 20px auto; }
 
-  /* ── ENVELOPE ── */
+  /* ── ENVELOPE WRAP ── */
   #envelope-wrap {
     position: relative;
+    width: 100%;
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
   }
+
+  /* Envelope visible state */
+  #envelope-wrap.is-open {
+    cursor: default;
+  }
+
   .envelope {
     position: relative;
     width: 100%;
@@ -135,15 +144,21 @@
       0 0 0 1px rgba(201,168,76,.35),
       0 20px 60px rgba(0,0,0,.55),
       0 0 80px rgba(200,86,110,.12);
-    transition: transform .3s ease, box-shadow .3s ease;
+    transition: transform .3s ease, box-shadow .3s ease, opacity .4s ease;
   }
-  #envelope-wrap:hover .envelope {
+  #envelope-wrap:not(.is-open):hover .envelope {
     transform: translateY(-4px) scale(1.01);
     box-shadow:
       0 0 0 1px rgba(201,168,76,.55),
       0 28px 80px rgba(0,0,0,.65),
       0 0 100px rgba(200,86,110,.22);
   }
+  .envelope.hiding {
+    transform: translateY(40px) scale(.94) !important;
+    opacity: 0 !important;
+    pointer-events: none;
+  }
+
   .env-body {
     position: absolute; inset: 0;
     background: linear-gradient(145deg, #2a0e20 0%, #3a1a2e 50%, #1e0a18 100%);
@@ -176,7 +191,7 @@
     clip-path: polygon(0% 0%, 50% 78%, 100% 0%);
     border-bottom: 1px solid rgba(201,168,76,.25);
     transform-origin: top center;
-    transition: transform .7s cubic-bezier(.4,0,.2,1);
+    transition: transform .65s cubic-bezier(.4,0,.2,1);
     z-index: 2;
   }
   .seal {
@@ -189,7 +204,7 @@
     box-shadow: 0 2px 12px rgba(0,0,0,.5), 0 0 0 2px rgba(201,168,76,.5);
     display: flex; align-items: center; justify-content: center;
     z-index: 3;
-    transition: transform .5s ease, opacity .5s ease;
+    transition: transform .4s ease, opacity .4s ease;
     animation: sealPulse 3s ease-in-out infinite;
     overflow: hidden;
   }
@@ -214,7 +229,7 @@
   .env-label .to {
     font-family: 'Cormorant Garamond', serif;
     font-style: italic;
-    font-size: clamp(.65rem,.9rem,.8rem);
+    font-size: clamp(.65rem,.8rem,.8rem);
     color: rgba(201,168,76,.7);
     letter-spacing: .1em;
     display: block;
@@ -230,44 +245,51 @@
 
   .hint {
     text-align: center;
-    margin-top: 18px;
+    margin-top: 16px;
     font-family: 'Cormorant Garamond', serif;
     font-style: italic;
     font-size: .85rem;
     color: rgba(201,168,76,.55);
     letter-spacing: .08em;
     animation: pulse 2.5s ease-in-out infinite;
+    transition: opacity .3s ease;
   }
   @keyframes pulse {
     0%,100% { opacity: .4; }
     50%      { opacity: 1; }
   }
+  .hint.hidden { opacity: 0; pointer-events: none; }
 
   /* ── LETTER ── */
   #letter {
-    position: absolute;
-    top: 0; left: 50%;
-    transform: translateX(-50%) translateY(0) scaleY(0);
-    transform-origin: bottom center;
-    width: calc(100% - 16px);
+    width: 100%;
     background: var(--cream);
     border-radius: 10px 10px 6px 6px;
     padding: clamp(20px,3.5vw,32px) clamp(18px,3.5vw,28px);
-    box-shadow: 0 -4px 30px rgba(0,0,0,.4), 0 0 60px rgba(200,86,110,.1);
-    opacity: 0;
-    z-index: 1;
+    box-shadow: 0 8px 40px rgba(0,0,0,.35), 0 0 60px rgba(200,86,110,.1);
     overflow: hidden;
-    max-height: 0;
+    position: relative;
+    /* Hidden by default — shown by JS adding .visible */
+    opacity: 0;
+    transform: translateY(24px) scaleY(0.92);
+    transform-origin: top center;
+    transition: opacity .5s ease, transform .6s cubic-bezier(.2,.8,.3,1);
     pointer-events: none;
+    display: none; /* starts hidden, JS sets display:block then animates */
+    margin-top: 20px;
   }
-  #letter.open { max-height: none; pointer-events: auto; }
+  #letter.visible {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+    pointer-events: auto;
+  }
   #letter::before {
     content: '';
     position: absolute; inset: 0;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.018'/%3E%3C/svg%3E");
     pointer-events: none;
+    border-radius: inherit;
   }
-  /* Decorative corner roses on the letter */
   #letter::after {
     content: '';
     position: absolute;
@@ -275,14 +297,6 @@
     height: 4px;
     background: linear-gradient(90deg, transparent, var(--gold), var(--rose), var(--gold), transparent);
     border-radius: 10px 10px 0 0;
-  }
-
-  #letter-scroll {
-    max-height: 80vh;
-    overflow-y: auto;
-    padding-right: 4px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--blush) transparent;
   }
 
   .letter-top-ornament {
@@ -456,8 +470,8 @@
 
   @media (max-width: 600px) {
     .side-panel { display: none; }
-    body { align-items: flex-start; padding: 16px; overflow: auto; }
-    #scene { width: 100%; }
+    #stage { padding: 30px 16px 50px; }
+    #center-col { width: 100%; }
   }
 </style>
 </head>
@@ -469,366 +483,363 @@
 <div id="confetti-layer"></div>
 <div id="burst-layer"></div>
 
-<div id="stage">
-  <!-- LEFT PANEL -->
-  <div class="side-panel left" id="leftPanel">
-    <svg viewBox="0 0 120 700" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <radialGradient id="roseGrad1" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#f2c4ce"/>
-          <stop offset="60%" stop-color="#c8566e"/>
-          <stop offset="100%" stop-color="#8a2040"/>
-        </radialGradient>
-        <radialGradient id="roseGrad2" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#fde8f0"/>
-          <stop offset="50%" stop-color="#e8a0b0"/>
-          <stop offset="100%" stop-color="#c8566e"/>
-        </radialGradient>
-        <radialGradient id="goldGrad" cx="30%" cy="30%" r="70%">
-          <stop offset="0%" stop-color="#f0d78c"/>
-          <stop offset="100%" stop-color="#c9a84c"/>
-        </radialGradient>
-      </defs>
+<div id="page-wrapper">
+  <div id="stage">
 
-      <!-- Vertical golden vine stem -->
-      <path d="M60,700 C55,600 65,540 58,460 C52,380 68,320 60,240 C53,160 65,100 60,20" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.6"/>
+    <!-- LEFT PANEL -->
+    <div class="side-panel left" id="leftPanel">
+      <svg viewBox="0 0 120 680" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="rG1" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#f2c4ce"/>
+            <stop offset="60%" stop-color="#c8566e"/>
+            <stop offset="100%" stop-color="#8a2040"/>
+          </radialGradient>
+          <radialGradient id="rG2" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fde8f0"/>
+            <stop offset="50%" stop-color="#e8a0b0"/>
+            <stop offset="100%" stop-color="#c8566e"/>
+          </radialGradient>
+          <radialGradient id="gG1" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#f0d78c"/>
+            <stop offset="100%" stop-color="#c9a84c"/>
+          </radialGradient>
+        </defs>
+        <!-- Vine stem -->
+        <path d="M60,680 C55,580 65,520 58,445 C52,368 68,308 60,232 C53,154 65,95 60,15" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.55"/>
 
-      <!-- Branch left 1 -->
-      <g class="branch-float">
-        <path d="M60,580 C40,565 20,570 10,555" stroke="#4a2a1e" stroke-width="2" fill="none"/>
-        <path d="M10,555 C8,545 14,538 20,542 C16,545 14,550 16,555 Z" fill="#5a3a28"/>
-        <!-- Rose 1 -->
-        <g transform="translate(10,542)">
-          <circle cx="0" cy="-5" r="12" fill="url(#roseGrad1)" opacity="0.9"/>
-          <path d="M-8,-8 Q0,-16 8,-8 Q12,-2 8,4 Q0,10 -8,4 Q-12,-2 -8,-8Z" fill="#e8556a" opacity="0.7"/>
-          <path d="M-5,-10 Q0,-14 5,-10 Q8,-6 5,-2 Q0,2 -5,-2 Q-8,-6 -5,-10Z" fill="#fde8f0" opacity="0.8"/>
-          <circle cx="0" cy="-5" r="4" fill="#f2c4ce"/>
-          <circle cx="0" cy="-5" r="2" fill="#fff" opacity="0.6"/>
+        <!-- Branch left bottom -->
+        <g class="branch-float">
+          <path d="M60,565 C40,550 18,555 6,540" stroke="#4a2a1e" stroke-width="2" fill="none"/>
+          <g transform="translate(6,527)">
+            <circle cx="0" cy="-5" r="13" fill="url(#rG1)" opacity="0.9"/>
+            <path d="M-9,-9 Q0,-18 9,-9 Q13,-2 9,5 Q0,11 -9,5 Q-13,-2 -9,-9Z" fill="#e8556a" opacity="0.65"/>
+            <path d="M-5,-11 Q0,-15 5,-11 Q8,-7 5,-2 Q0,3 -5,-2 Q-8,-7 -5,-11Z" fill="#fde8f0" opacity="0.8"/>
+            <circle cx="0" cy="-5" r="4.5" fill="#f2c4ce"/>
+            <circle cx="0" cy="-5" r="2" fill="#fff" opacity="0.6"/>
+          </g>
+          <ellipse cx="24" cy="545" rx="7" ry="12" fill="#3a5e2a" opacity="0.7" transform="rotate(-30 24 545)"/>
+          <ellipse cx="19" cy="558" rx="6" ry="10" fill="#4a7a38" opacity="0.6" transform="rotate(22 19 558)"/>
         </g>
-        <!-- Leaf -->
-        <ellipse cx="22" cy="560" rx="7" ry="12" fill="#3a5e2a" opacity="0.7" transform="rotate(-30 22 560)"/>
-        <ellipse cx="18" cy="572" rx="6" ry="10" fill="#4a7a38" opacity="0.6" transform="rotate(20 18 572)"/>
-      </g>
 
-      <!-- Branch right 1 -->
-      <g>
-        <path d="M60,490 C78,475 95,480 105,465" stroke="#4a2a1e" stroke-width="2" fill="none"/>
-        <!-- Small flower -->
-        <g transform="translate(105,460)" class="petal-glow">
-          <circle cx="0" cy="0" r="4" fill="#f2c4ce"/>
-          <circle cx="-6" cy="-3" r="4" fill="#e8a0b0" opacity="0.8"/>
-          <circle cx="6" cy="-3" r="4" fill="#e8a0b0" opacity="0.8"/>
-          <circle cx="-4" cy="5" r="4" fill="#c8566e" opacity="0.7"/>
-          <circle cx="4" cy="5" r="4" fill="#c8566e" opacity="0.7"/>
-          <circle cx="0" cy="0" r="3" fill="#f0d78c"/>
+        <!-- Branch right mid-low -->
+        <g>
+          <path d="M60,478 C79,463 96,468 107,453" stroke="#4a2a1e" stroke-width="1.8" fill="none"/>
+          <g transform="translate(107,448)" class="petal-glow">
+            <circle cx="0" cy="0" r="4.5" fill="#f2c4ce"/>
+            <circle cx="-7" cy="-3" r="4" fill="#e8a0b0" opacity="0.8"/>
+            <circle cx="7" cy="-3" r="4" fill="#e8a0b0" opacity="0.8"/>
+            <circle cx="-4" cy="6" r="4" fill="#c8566e" opacity="0.7"/>
+            <circle cx="4" cy="6" r="4" fill="#c8566e" opacity="0.7"/>
+            <circle cx="0" cy="0" r="3" fill="#f0d78c"/>
+          </g>
+          <ellipse cx="92" cy="460" rx="8" ry="13" fill="#3a6a2a" opacity="0.65" transform="rotate(26 92 460)"/>
         </g>
-        <ellipse cx="90" cy="472" rx="8" ry="13" fill="#3a6a2a" opacity="0.65" transform="rotate(25 90 472)"/>
-      </g>
 
-      <!-- Branch left 2 -->
-      <g class="branch-float-2">
-        <path d="M60,400 C38,385 18,390 8,375" stroke="#4a2a1e" stroke-width="2" fill="none"/>
-        <!-- Rose 2 (larger) -->
-        <g transform="translate(8,368)" class="petal-glow">
-          <circle cx="0" cy="0" r="14" fill="url(#roseGrad2)" opacity="0.9"/>
-          <path d="M-10,-8 Q0,-18 10,-8 Q14,-1 10,6 Q0,12 -10,6 Q-14,-1 -10,-8Z" fill="#e8556a" opacity="0.6"/>
-          <path d="M-6,-10 Q0,-15 6,-10 Q9,-5 6,0 Q0,5 -6,0 Q-9,-5 -6,-10Z" fill="#fde8f0" opacity="0.85"/>
-          <circle cx="0" cy="-2" r="5" fill="#f2c4ce"/>
-          <circle cx="0" cy="-2" r="2.5" fill="#fff" opacity="0.7"/>
+        <!-- Branch left mid -->
+        <g class="branch-float-2">
+          <path d="M60,390 C37,374 16,379 5,363" stroke="#4a2a1e" stroke-width="2" fill="none"/>
+          <g transform="translate(5,350)" class="petal-glow">
+            <circle cx="0" cy="0" r="15" fill="url(#rG2)" opacity="0.9"/>
+            <path d="M-11,-9 Q0,-20 11,-9 Q15,-1 11,7 Q0,13 -11,7 Q-15,-1 -11,-9Z" fill="#e8556a" opacity="0.6"/>
+            <path d="M-7,-11 Q0,-16 7,-11 Q10,-6 7,0 Q0,5 -7,0 Q-10,-6 -7,-11Z" fill="#fde8f0" opacity="0.85"/>
+            <circle cx="0" cy="-2" r="5.5" fill="#f2c4ce"/>
+            <circle cx="0" cy="-2" r="2.5" fill="#fff" opacity="0.7"/>
+          </g>
+          <ellipse cx="24" cy="368" rx="7" ry="12" fill="#3a5e2a" opacity="0.7" transform="rotate(-20 24 368)"/>
+          <ellipse cx="17" cy="382" rx="6" ry="9" fill="#4a7a38" opacity="0.6" transform="rotate(36 17 382)"/>
         </g>
-        <ellipse cx="22" cy="382" rx="7" ry="11" fill="#3a5e2a" opacity="0.7" transform="rotate(-20 22 382)"/>
-        <ellipse cx="15" cy="395" rx="6" ry="9" fill="#4a7a38" opacity="0.6" transform="rotate(35 15 395)"/>
-      </g>
 
-      <!-- Gold ornament center -->
-      <g transform="translate(60,330)" class="gold-glow">
-        <circle cx="0" cy="0" r="8" fill="url(#goldGrad)"/>
-        <path d="M0,-14 L2,-8 L8,-8 L3,-4 L5,2 L0,-2 L-5,2 L-3,-4 L-8,-8 L-2,-8Z" fill="#f0d78c" opacity="0.9"/>
-        <circle cx="0" cy="0" r="3" fill="#fff" opacity="0.5"/>
-      </g>
-
-      <!-- Branch right 2 -->
-      <g>
-        <path d="M60,270 C80,255 100,260 112,245" stroke="#4a2a1e" stroke-width="1.8" fill="none"/>
-        <g transform="translate(112,240)" class="petal-glow">
-          <circle cx="0" cy="0" r="11" fill="url(#roseGrad1)" opacity="0.85"/>
-          <path d="M-7,-6 Q0,-13 7,-6 Q10,-1 7,4 Q0,9 -7,4 Q-10,-1 -7,-6Z" fill="#e8556a" opacity="0.65"/>
-          <path d="M-4,-8 Q0,-12 4,-8 Q6,-4 4,0 Q0,3 -4,0 Q-6,-4 -4,-8Z" fill="#fde8f0" opacity="0.8"/>
-          <circle cx="0" cy="-2" r="3.5" fill="#f0d78c"/>
+        <!-- Gold star center -->
+        <g transform="translate(60,318)" class="gold-glow">
+          <circle cx="0" cy="0" r="9" fill="url(#gG1)"/>
+          <path d="M0,-15 L2.5,-8 L9,-8 L4,-4 L6,3 L0,-2 L-6,3 L-4,-4 L-9,-8 L-2.5,-8Z" fill="#f0d78c" opacity="0.9"/>
+          <circle cx="0" cy="0" r="3.5" fill="#fff" opacity="0.5"/>
         </g>
-        <ellipse cx="96" cy="252" rx="7" ry="12" fill="#3a6a2a" opacity="0.7" transform="rotate(30 96 252)"/>
-      </g>
 
-      <!-- Branch left 3 -->
-      <g class="branch-float">
-        <path d="M60,180 C38,168 18,172 6,158" stroke="#4a2a1e" stroke-width="1.8" fill="none"/>
-        <!-- Cherry blossoms cluster -->
-        <g transform="translate(6,152)">
-          <circle cx="0" cy="0" r="7" fill="#fde8f0" opacity="0.9"/>
-          <circle cx="10" cy="-6" r="6" fill="#f2c4ce" opacity="0.85"/>
-          <circle cx="-8" cy="-4" r="6" fill="#e8a0b0" opacity="0.8"/>
-          <circle cx="4" cy="8" r="5" fill="#f2c4ce" opacity="0.75"/>
-          <circle cx="0" cy="0" r="2.5" fill="#c9a84c"/>
-          <circle cx="10" cy="-6" r="2" fill="#c9a84c"/>
-          <circle cx="-8" cy="-4" r="2" fill="#c9a84c"/>
+        <!-- Branch right upper-mid -->
+        <g>
+          <path d="M60,262 C81,246 102,251 114,236" stroke="#4a2a1e" stroke-width="1.8" fill="none"/>
+          <g transform="translate(114,230)" class="petal-glow">
+            <circle cx="0" cy="0" r="12" fill="url(#rG1)" opacity="0.85"/>
+            <path d="M-8,-7 Q0,-14 8,-7 Q11,-1 8,5 Q0,10 -8,5 Q-11,-1 -8,-7Z" fill="#e8556a" opacity="0.65"/>
+            <path d="M-5,-9 Q0,-13 5,-9 Q7,-5 5,0 Q0,4 -5,0 Q-7,-5 -5,-9Z" fill="#fde8f0" opacity="0.8"/>
+            <circle cx="0" cy="-2" r="4" fill="#f0d78c"/>
+          </g>
+          <ellipse cx="98" cy="242" rx="7" ry="12" fill="#3a6a2a" opacity="0.7" transform="rotate(31 98 242)"/>
         </g>
-        <ellipse cx="20" cy="164" rx="6" ry="10" fill="#3a5e2a" opacity="0.7" transform="rotate(-25 20 164)"/>
-      </g>
 
-      <!-- Top gold diamond ornament -->
-      <g transform="translate(60,80)" class="gold-glow">
-        <path d="M0,-20 L10,-5 L0,10 L-10,-5Z" fill="url(#goldGrad)" opacity="0.8"/>
-        <path d="M0,-12 L6,-3 L0,6 L-6,-3Z" fill="#f0d78c" opacity="0.6"/>
-        <circle cx="0" cy="-5" r="2" fill="#fff" opacity="0.7"/>
-      </g>
+        <!-- Branch left upper -->
+        <g class="branch-float">
+          <path d="M60,172 C37,159 16,163 4,149" stroke="#4a2a1e" stroke-width="1.8" fill="none"/>
+          <g transform="translate(4,142)">
+            <circle cx="0" cy="0" r="8" fill="#fde8f0" opacity="0.9"/>
+            <circle cx="12" cy="-7" r="7" fill="#f2c4ce" opacity="0.85"/>
+            <circle cx="-9" cy="-5" r="6" fill="#e8a0b0" opacity="0.8"/>
+            <circle cx="5" cy="9" r="6" fill="#f2c4ce" opacity="0.75"/>
+            <circle cx="0" cy="0" r="3" fill="#c9a84c"/>
+            <circle cx="12" cy="-7" r="2.5" fill="#c9a84c"/>
+            <circle cx="-9" cy="-5" r="2" fill="#c9a84c"/>
+          </g>
+          <ellipse cx="22" cy="157" rx="6" ry="10" fill="#3a5e2a" opacity="0.7" transform="rotate(-26 22 157)"/>
+        </g>
 
-      <!-- Tiny scattered petals -->
-      <circle cx="30" cy="640" r="3" fill="#f2c4ce" opacity="0.5"/>
-      <circle cx="85" cy="625" r="2.5" fill="#e8a0b0" opacity="0.4"/>
-      <circle cx="40" cy="440" r="2" fill="#f2c4ce" opacity="0.5"/>
-      <circle cx="90" cy="200" r="3" fill="#f0d78c" opacity="0.5"/>
-      <circle cx="35" cy="130" r="2" fill="#f2c4ce" opacity="0.4"/>
+        <!-- Top diamond -->
+        <g transform="translate(60,76)" class="gold-glow">
+          <path d="M0,-22 L11,-5 L0,12 L-11,-5Z" fill="url(#gG1)" opacity="0.8"/>
+          <path d="M0,-13 L6,-3 L0,7 L-6,-3Z" fill="#f0d78c" opacity="0.65"/>
+          <circle cx="0" cy="-3" r="2.5" fill="#fff" opacity="0.7"/>
+        </g>
 
-      <!-- Falling petals decorative -->
-      <path d="M75,300 Q80,295 78,305 Q73,308 75,300Z" fill="#f2c4ce" opacity="0.5"/>
-      <path d="M45,350 Q50,344 48,354 Q43,357 45,350Z" fill="#e8a0b0" opacity="0.4"/>
-      <path d="M85,430 Q90,424 88,434 Q83,437 85,430Z" fill="#f2c4ce" opacity="0.5"/>
-    </svg>
-  </div>
+        <!-- Scattered dots -->
+        <circle cx="32" cy="624" r="3" fill="#f2c4ce" opacity="0.5"/>
+        <circle cx="88" cy="610" r="2.5" fill="#e8a0b0" opacity="0.4"/>
+        <circle cx="42" cy="428" r="2" fill="#f2c4ce" opacity="0.5"/>
+        <circle cx="92" cy="195" r="3" fill="#f0d78c" opacity="0.5"/>
+        <circle cx="36" cy="124" r="2" fill="#f2c4ce" opacity="0.4"/>
+        <path d="M78,293 Q83,288 81,298 Q76,301 78,293Z" fill="#f2c4ce" opacity="0.5"/>
+        <path d="M46,342 Q51,336 49,346 Q44,349 46,342Z" fill="#e8a0b0" opacity="0.4"/>
+        <path d="M88,418 Q93,412 91,422 Q86,425 88,418Z" fill="#f2c4ce" opacity="0.5"/>
+      </svg>
+    </div>
 
-  <!-- CENTER SCENE -->
-  <div id="scene">
-    <div id="envelope-wrap">
-      <div class="envelope" id="envelopeEl">
-        <div class="env-body"></div>
-        <div class="env-frame"></div>
-        <div class="env-flap"></div>
-        <div class="seal">
-          <svg class="seal-svg" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="15" cy="14" r="6" fill="#fde8f0"/>
-            <path d="M15,8 C15,8 18,11 18,14 C18,16.5 16.5,18 15,18 C13.5,18 12,16.5 12,14 C12,11 15,8 15,8Z" fill="#e8a0b0"/>
-            <path d="M9,11 C9,11 12,12 13,14 C14,16 13,18 11.5,18 C10,18 9,16.5 9.5,14.5 C9.5,12.5 9,11 9,11Z" fill="#c8566e" opacity="0.8"/>
-            <path d="M21,11 C21,11 18,12 17,14 C16,16 17,18 18.5,18 C20,18 21,16.5 20.5,14.5 C20.5,12.5 21,11 21,11Z" fill="#c8566e" opacity="0.8"/>
-            <circle cx="15" cy="22" r="2.5" fill="#f2c4ce"/>
-            <circle cx="10" cy="19" r="2" fill="#f2c4ce"/>
-            <circle cx="20" cy="19" r="2" fill="#f2c4ce"/>
-            <circle cx="15" cy="13" r="2.5" fill="#fff" opacity="0.6"/>
+    <!-- CENTER SCENE -->
+    <div id="center-col">
+      <div id="envelope-wrap">
+        <!-- ENVELOPE -->
+        <div class="envelope" id="envelopeEl">
+          <div class="env-body"></div>
+          <div class="env-frame"></div>
+          <div class="env-flap"></div>
+          <div class="seal">
+            <svg class="seal-svg" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="15" cy="14" r="6" fill="#fde8f0"/>
+              <path d="M15,8 C15,8 18,11 18,14 C18,16.5 16.5,18 15,18 C13.5,18 12,16.5 12,14 C12,11 15,8 15,8Z" fill="#e8a0b0"/>
+              <path d="M9,11 C9,11 12,12 13,14 C14,16 13,18 11.5,18 C10,18 9,16.5 9.5,14.5 C9.5,12.5 9,11 9,11Z" fill="#c8566e" opacity="0.8"/>
+              <path d="M21,11 C21,11 18,12 17,14 C16,16 17,18 18.5,18 C20,18 21,16.5 20.5,14.5 C20.5,12.5 21,11 21,11Z" fill="#c8566e" opacity="0.8"/>
+              <circle cx="15" cy="22" r="2.5" fill="#f2c4ce"/>
+              <circle cx="10" cy="19" r="2" fill="#f2c4ce"/>
+              <circle cx="20" cy="19" r="2" fill="#f2c4ce"/>
+              <circle cx="15" cy="13" r="2.5" fill="#fff" opacity="0.6"/>
+            </svg>
+          </div>
+          <div class="env-label">
+            <span class="to">Para</span>
+            <span class="name">Yaiza</span>
+          </div>
+        </div>
+        <p class="hint" id="hint">Toca para abrir tu carta</p>
+      </div>
+
+      <!-- LETTER (outside envelope, in normal document flow) -->
+      <div id="letter">
+        <div class="letter-top-ornament">
+          <svg width="180" height="28" viewBox="0 0 180 28" xmlns="http://www.w3.org/2000/svg">
+            <line x1="0" y1="14" x2="60" y2="14" stroke="#c9a84c" stroke-width="0.8" opacity="0.5"/>
+            <path d="M60,14 Q75,4 90,14 Q105,24 120,14" stroke="#c9a84c" stroke-width="1.2" fill="none" opacity="0.8"/>
+            <line x1="120" y1="14" x2="180" y2="14" stroke="#c9a84c" stroke-width="0.8" opacity="0.5"/>
+            <circle cx="90" cy="14" r="3" fill="#c9a84c" opacity="0.8"/>
+            <circle cx="70" cy="10" r="2" fill="#c8566e" opacity="0.7"/>
+            <circle cx="110" cy="10" r="2" fill="#c8566e" opacity="0.7"/>
+            <path d="M83,14 L85,8 L87,14 L85,20Z" fill="#c9a84c" opacity="0.6"/>
+            <path d="M93,14 L95,8 L97,14 L95,20Z" fill="#c9a84c" opacity="0.6"/>
           </svg>
         </div>
-        <div class="env-label">
-          <span class="to">Para</span>
-          <span class="name">Yaiza</span>
+
+        <div class="letter-deco">
+          <svg width="120" height="24" viewBox="0 0 120 24" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="60" cy="12" r="5" fill="#f2c4ce" opacity="0.9"/>
+            <circle cx="55" cy="8" r="4" fill="#e8a0b0" opacity="0.8"/>
+            <circle cx="65" cy="8" r="4" fill="#e8a0b0" opacity="0.8"/>
+            <circle cx="52" cy="14" r="3.5" fill="#c8566e" opacity="0.7"/>
+            <circle cx="68" cy="14" r="3.5" fill="#c8566e" opacity="0.7"/>
+            <circle cx="60" cy="12" r="2" fill="#f0d78c"/>
+            <circle cx="35" cy="12" r="4" fill="#f2c4ce" opacity="0.7"/>
+            <circle cx="31" cy="9" r="3" fill="#e8a0b0" opacity="0.6"/>
+            <circle cx="39" cy="9" r="3" fill="#e8a0b0" opacity="0.6"/>
+            <circle cx="35" cy="12" r="1.5" fill="#f0d78c"/>
+            <circle cx="85" cy="12" r="4" fill="#f2c4ce" opacity="0.7"/>
+            <circle cx="81" cy="9" r="3" fill="#e8a0b0" opacity="0.6"/>
+            <circle cx="89" cy="9" r="3" fill="#e8a0b0" opacity="0.6"/>
+            <circle cx="85" cy="12" r="1.5" fill="#f0d78c"/>
+            <path d="M10,12 Q15,6 20,12 Q15,18 10,12Z" fill="#c8566e" opacity="0.5"/>
+            <path d="M100,12 Q105,6 110,12 Q105,18 100,12Z" fill="#c8566e" opacity="0.5"/>
+          </svg>
+        </div>
+
+        <div class="letter-divider"><span>&#10022;</span></div>
+        <div class="letter-greeting">&#161;Feliz Cumplea&#241;os, Yaiza!</div>
+
+        <div class="letter-body">
+          <p>Hoy es un d&#237;a tan especial como t&#250; misma. Un d&#237;a que el mundo celebra que existes, que sonr&#237;es, que iluminas cada espacio que pisas.</p>
+          <p>Que este nuevo a&#241;o de vida est&#233; lleno de momentos que te hagan el coraz&#243;n grande, de nuevas experiencias, de risas que no puedas controlar y de personas que valoren cada parte de quien eres.</p>
+          <p>Mereces todo lo bonito que la vida tiene para ofrecer &#8212; y m&#225;s. Que cada uno de tus sue&#241;os encuentre el camino para hacerse realidad.</p>
+          <p>Aproximadamente 1 a&#241;o me acerqu&#233; a ti y conoc&#237; a una muy bonita persona, mis mejores deseos este y los pr&#243;ximos a&#241;os.</p>
+          <p>P.D. Espero volverte a ver alg&#250;n d&#237;a y darte tu pastel.</p>
+        </div>
+
+        <div class="letter-sign">
+          <span class="with-love">Con todo el cari&#241;o,</span>
+          <span class="sign-name">Christian M.H</span>
+        </div>
+
+        <div class="letter-bottom-deco">
+          <svg width="160" height="30" viewBox="0 0 160 30" xmlns="http://www.w3.org/2000/svg">
+            <line x1="0" y1="15" x2="55" y2="15" stroke="#c9a84c" stroke-width="0.8" opacity="0.5"/>
+            <line x1="105" y1="15" x2="160" y2="15" stroke="#c9a84c" stroke-width="0.8" opacity="0.5"/>
+            <circle cx="60" cy="15" r="4" fill="#f2c4ce" opacity="0.8"/>
+            <circle cx="80" cy="15" r="6" fill="#c8566e" opacity="0.7"/>
+            <circle cx="100" cy="15" r="4" fill="#f2c4ce" opacity="0.8"/>
+            <circle cx="80" cy="15" r="3" fill="#f0d78c"/>
+            <path d="M73,9 L75,4 L77,9 L73,9Z" fill="#c9a84c" opacity="0.6"/>
+            <path d="M83,9 L85,4 L87,9 L83,9Z" fill="#c9a84c" opacity="0.6"/>
+            <path d="M73,21 L75,26 L77,21 L73,21Z" fill="#c9a84c" opacity="0.6"/>
+            <path d="M83,21 L85,26 L87,21 L83,21Z" fill="#c9a84c" opacity="0.6"/>
+          </svg>
+        </div>
+
+        <div id="cake-section">
+          <canvas id="cake-canvas" width="240" height="190"></canvas>
+          <p class="cake-label">Toca el pastel para pedir un deseo</p>
         </div>
       </div>
+      <!-- end #letter -->
 
-      <div id="letter">
-        <div id="letter-scroll">
-          <!-- SVG ornament top -->
-          <div class="letter-top-ornament">
-            <svg width="180" height="28" viewBox="0 0 180 28" xmlns="http://www.w3.org/2000/svg">
-              <line x1="0" y1="14" x2="60" y2="14" stroke="#c9a84c" stroke-width="0.8" opacity="0.5"/>
-              <path d="M60,14 Q75,4 90,14 Q105,24 120,14" stroke="#c9a84c" stroke-width="1.2" fill="none" opacity="0.8"/>
-              <line x1="120" y1="14" x2="180" y2="14" stroke="#c9a84c" stroke-width="0.8" opacity="0.5"/>
-              <circle cx="90" cy="14" r="3" fill="#c9a84c" opacity="0.8"/>
-              <circle cx="70" cy="10" r="2" fill="#c8566e" opacity="0.7"/>
-              <circle cx="110" cy="10" r="2" fill="#c8566e" opacity="0.7"/>
-              <path d="M83,14 L85,8 L87,14 L85,20Z" fill="#c9a84c" opacity="0.6" transform="rotate(0 85 14)"/>
-              <path d="M93,14 L95,8 L97,14 L95,20Z" fill="#c9a84c" opacity="0.6"/>
-            </svg>
-          </div>
-
-          <div class="letter-deco">
-            <svg width="120" height="24" viewBox="0 0 120 24" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="60" cy="12" r="5" fill="#f2c4ce" opacity="0.9"/>
-              <circle cx="55" cy="8" r="4" fill="#e8a0b0" opacity="0.8"/>
-              <circle cx="65" cy="8" r="4" fill="#e8a0b0" opacity="0.8"/>
-              <circle cx="52" cy="14" r="3.5" fill="#c8566e" opacity="0.7"/>
-              <circle cx="68" cy="14" r="3.5" fill="#c8566e" opacity="0.7"/>
-              <circle cx="60" cy="12" r="2" fill="#f0d78c"/>
-              <circle cx="35" cy="12" r="4" fill="#f2c4ce" opacity="0.7"/>
-              <circle cx="31" cy="9" r="3" fill="#e8a0b0" opacity="0.6"/>
-              <circle cx="39" cy="9" r="3" fill="#e8a0b0" opacity="0.6"/>
-              <circle cx="35" cy="12" r="1.5" fill="#f0d78c"/>
-              <circle cx="85" cy="12" r="4" fill="#f2c4ce" opacity="0.7"/>
-              <circle cx="81" cy="9" r="3" fill="#e8a0b0" opacity="0.6"/>
-              <circle cx="89" cy="9" r="3" fill="#e8a0b0" opacity="0.6"/>
-              <circle cx="85" cy="12" r="1.5" fill="#f0d78c"/>
-              <path d="M10,12 Q15,6 20,12 Q15,18 10,12Z" fill="#c8566e" opacity="0.5"/>
-              <path d="M100,12 Q105,6 110,12 Q105,18 100,12Z" fill="#c8566e" opacity="0.5"/>
-            </svg>
-          </div>
-
-          <div class="letter-divider"><span>&#10022;</span></div>
-          <div class="letter-greeting">&#161;Feliz Cumplea&#241;os, Yaiza!</div>
-          <div class="letter-body">
-            <p>Hoy es un d&#237;a tan especial como t&#250; misma. Un d&#237;a que el mundo celebra que existes, que sonr&#237;es, que iluminas cada espacio que pisas.</p>
-            <p>Que este nuevo a&#241;o de vida est&#233; lleno de momentos que te hagan el coraz&#243;n grande, de nuevas experiencias, de risas que no puedas controlar y de personas que valoren cada parte de quien eres.</p>
-            <p>Mereces todo lo bonito que la vida tiene para ofrecer &#8212; y m&#225;s. Que cada uno de tus sue&#241;os encuentre el camino para hacerse realidad.</p>
-            <p>Aproximadamente 1 a&#241;o me acerqu&#233; a ti y conoc&#237; a una muy bonita persona, mis mejores deseos este y los pr&#243;ximos a&#241;os.</p>
-            <p>P.D. Espero volverte a ver alg&#250;n d&#237;a y darte tu pastel.</p>
-          </div>
-          <div class="letter-sign">
-            <span class="with-love">Con todo el cari&#241;o,</span>
-            <span class="sign-name">Christian M.H</span>
-          </div>
-
-          <!-- Bottom ornament divider -->
-          <div class="letter-bottom-deco">
-            <svg width="160" height="30" viewBox="0 0 160 30" xmlns="http://www.w3.org/2000/svg">
-              <line x1="0" y1="15" x2="55" y2="15" stroke="#c9a84c" stroke-width="0.8" opacity="0.5"/>
-              <line x1="105" y1="15" x2="160" y2="15" stroke="#c9a84c" stroke-width="0.8" opacity="0.5"/>
-              <circle cx="60" cy="15" r="4" fill="#f2c4ce" opacity="0.8"/>
-              <circle cx="80" cy="15" r="6" fill="#c8566e" opacity="0.7"/>
-              <circle cx="100" cy="15" r="4" fill="#f2c4ce" opacity="0.8"/>
-              <circle cx="80" cy="15" r="3" fill="#f0d78c"/>
-              <path d="M73,9 L75,4 L77,9 L73,9Z" fill="#c9a84c" opacity="0.6"/>
-              <path d="M83,9 L85,4 L87,9 L83,9Z" fill="#c9a84c" opacity="0.6"/>
-              <path d="M73,21 L75,26 L77,21 L73,21Z" fill="#c9a84c" opacity="0.6"/>
-              <path d="M83,21 L85,26 L87,21 L83,21Z" fill="#c9a84c" opacity="0.6"/>
-            </svg>
-          </div>
-
-          <div id="cake-section">
-            <canvas id="cake-canvas" width="240" height="190"></canvas>
-            <p class="cake-label">Toca el pastel para pedir un deseo</p>
-          </div>
-        </div>
-      </div>
     </div>
-    <p class="hint" id="hint">Toca para abrir tu carta</p>
-  </div>
+    <!-- end #center-col -->
 
-  <!-- RIGHT PANEL (mirror) -->
-  <div class="side-panel right" id="rightPanel">
-    <svg viewBox="0 0 120 700" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <radialGradient id="roseGradR1" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#f2c4ce"/>
-          <stop offset="60%" stop-color="#c8566e"/>
-          <stop offset="100%" stop-color="#8a2040"/>
-        </radialGradient>
-        <radialGradient id="roseGradR2" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#fde8f0"/>
-          <stop offset="50%" stop-color="#e8a0b0"/>
-          <stop offset="100%" stop-color="#c8566e"/>
-        </radialGradient>
-        <radialGradient id="goldGradR" cx="30%" cy="30%" r="70%">
-          <stop offset="0%" stop-color="#f0d78c"/>
-          <stop offset="100%" stop-color="#c9a84c"/>
-        </radialGradient>
-      </defs>
-      <path d="M60,700 C55,600 65,540 58,460 C52,380 68,320 60,240 C53,160 65,100 60,20" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.6"/>
-      <g class="branch-float">
-        <path d="M60,580 C40,565 20,570 10,555" stroke="#4a2a1e" stroke-width="2" fill="none"/>
-        <g transform="translate(10,542)">
-          <circle cx="0" cy="-5" r="12" fill="url(#roseGradR1)" opacity="0.9"/>
-          <path d="M-8,-8 Q0,-16 8,-8 Q12,-2 8,4 Q0,10 -8,4 Q-12,-2 -8,-8Z" fill="#e8556a" opacity="0.7"/>
-          <path d="M-5,-10 Q0,-14 5,-10 Q8,-6 5,-2 Q0,2 -5,-2 Q-8,-6 -5,-10Z" fill="#fde8f0" opacity="0.8"/>
-          <circle cx="0" cy="-5" r="4" fill="#f2c4ce"/>
-          <circle cx="0" cy="-5" r="2" fill="#fff" opacity="0.6"/>
+    <!-- RIGHT PANEL (mirror) -->
+    <div class="side-panel right" id="rightPanel">
+      <svg viewBox="0 0 120 680" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="rGR1" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#f2c4ce"/>
+            <stop offset="60%" stop-color="#c8566e"/>
+            <stop offset="100%" stop-color="#8a2040"/>
+          </radialGradient>
+          <radialGradient id="rGR2" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fde8f0"/>
+            <stop offset="50%" stop-color="#e8a0b0"/>
+            <stop offset="100%" stop-color="#c8566e"/>
+          </radialGradient>
+          <radialGradient id="gGR1" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#f0d78c"/>
+            <stop offset="100%" stop-color="#c9a84c"/>
+          </radialGradient>
+        </defs>
+        <path d="M60,680 C55,580 65,520 58,445 C52,368 68,308 60,232 C53,154 65,95 60,15" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.55"/>
+        <g class="branch-float">
+          <path d="M60,565 C40,550 18,555 6,540" stroke="#4a2a1e" stroke-width="2" fill="none"/>
+          <g transform="translate(6,527)">
+            <circle cx="0" cy="-5" r="13" fill="url(#rGR1)" opacity="0.9"/>
+            <path d="M-9,-9 Q0,-18 9,-9 Q13,-2 9,5 Q0,11 -9,5 Q-13,-2 -9,-9Z" fill="#e8556a" opacity="0.65"/>
+            <path d="M-5,-11 Q0,-15 5,-11 Q8,-7 5,-2 Q0,3 -5,-2 Q-8,-7 -5,-11Z" fill="#fde8f0" opacity="0.8"/>
+            <circle cx="0" cy="-5" r="4.5" fill="#f2c4ce"/>
+            <circle cx="0" cy="-5" r="2" fill="#fff" opacity="0.6"/>
+          </g>
+          <ellipse cx="24" cy="545" rx="7" ry="12" fill="#3a5e2a" opacity="0.7" transform="rotate(-30 24 545)"/>
+          <ellipse cx="19" cy="558" rx="6" ry="10" fill="#4a7a38" opacity="0.6" transform="rotate(22 19 558)"/>
         </g>
-        <ellipse cx="22" cy="560" rx="7" ry="12" fill="#3a5e2a" opacity="0.7" transform="rotate(-30 22 560)"/>
-        <ellipse cx="18" cy="572" rx="6" ry="10" fill="#4a7a38" opacity="0.6" transform="rotate(20 18 572)"/>
-      </g>
-      <g>
-        <path d="M60,490 C78,475 95,480 105,465" stroke="#4a2a1e" stroke-width="2" fill="none"/>
-        <g transform="translate(105,460)" class="petal-glow">
-          <circle cx="0" cy="0" r="4" fill="#f2c4ce"/>
-          <circle cx="-6" cy="-3" r="4" fill="#e8a0b0" opacity="0.8"/>
-          <circle cx="6" cy="-3" r="4" fill="#e8a0b0" opacity="0.8"/>
-          <circle cx="-4" cy="5" r="4" fill="#c8566e" opacity="0.7"/>
-          <circle cx="4" cy="5" r="4" fill="#c8566e" opacity="0.7"/>
-          <circle cx="0" cy="0" r="3" fill="#f0d78c"/>
+        <g>
+          <path d="M60,478 C79,463 96,468 107,453" stroke="#4a2a1e" stroke-width="1.8" fill="none"/>
+          <g transform="translate(107,448)" class="petal-glow">
+            <circle cx="0" cy="0" r="4.5" fill="#f2c4ce"/>
+            <circle cx="-7" cy="-3" r="4" fill="#e8a0b0" opacity="0.8"/>
+            <circle cx="7" cy="-3" r="4" fill="#e8a0b0" opacity="0.8"/>
+            <circle cx="-4" cy="6" r="4" fill="#c8566e" opacity="0.7"/>
+            <circle cx="4" cy="6" r="4" fill="#c8566e" opacity="0.7"/>
+            <circle cx="0" cy="0" r="3" fill="#f0d78c"/>
+          </g>
+          <ellipse cx="92" cy="460" rx="8" ry="13" fill="#3a6a2a" opacity="0.65" transform="rotate(26 92 460)"/>
         </g>
-        <ellipse cx="90" cy="472" rx="8" ry="13" fill="#3a6a2a" opacity="0.65" transform="rotate(25 90 472)"/>
-      </g>
-      <g class="branch-float-2">
-        <path d="M60,400 C38,385 18,390 8,375" stroke="#4a2a1e" stroke-width="2" fill="none"/>
-        <g transform="translate(8,368)" class="petal-glow">
-          <circle cx="0" cy="0" r="14" fill="url(#roseGradR2)" opacity="0.9"/>
-          <path d="M-10,-8 Q0,-18 10,-8 Q14,-1 10,6 Q0,12 -10,6 Q-14,-1 -10,-8Z" fill="#e8556a" opacity="0.6"/>
-          <path d="M-6,-10 Q0,-15 6,-10 Q9,-5 6,0 Q0,5 -6,0 Q-9,-5 -6,-10Z" fill="#fde8f0" opacity="0.85"/>
-          <circle cx="0" cy="-2" r="5" fill="#f2c4ce"/>
-          <circle cx="0" cy="-2" r="2.5" fill="#fff" opacity="0.7"/>
+        <g class="branch-float-2">
+          <path d="M60,390 C37,374 16,379 5,363" stroke="#4a2a1e" stroke-width="2" fill="none"/>
+          <g transform="translate(5,350)" class="petal-glow">
+            <circle cx="0" cy="0" r="15" fill="url(#rGR2)" opacity="0.9"/>
+            <path d="M-11,-9 Q0,-20 11,-9 Q15,-1 11,7 Q0,13 -11,7 Q-15,-1 -11,-9Z" fill="#e8556a" opacity="0.6"/>
+            <path d="M-7,-11 Q0,-16 7,-11 Q10,-6 7,0 Q0,5 -7,0 Q-10,-6 -7,-11Z" fill="#fde8f0" opacity="0.85"/>
+            <circle cx="0" cy="-2" r="5.5" fill="#f2c4ce"/>
+            <circle cx="0" cy="-2" r="2.5" fill="#fff" opacity="0.7"/>
+          </g>
+          <ellipse cx="24" cy="368" rx="7" ry="12" fill="#3a5e2a" opacity="0.7" transform="rotate(-20 24 368)"/>
+          <ellipse cx="17" cy="382" rx="6" ry="9" fill="#4a7a38" opacity="0.6" transform="rotate(36 17 382)"/>
         </g>
-        <ellipse cx="22" cy="382" rx="7" ry="11" fill="#3a5e2a" opacity="0.7" transform="rotate(-20 22 382)"/>
-        <ellipse cx="15" cy="395" rx="6" ry="9" fill="#4a7a38" opacity="0.6" transform="rotate(35 15 395)"/>
-      </g>
-      <g transform="translate(60,330)" class="gold-glow">
-        <circle cx="0" cy="0" r="8" fill="url(#goldGradR)"/>
-        <path d="M0,-14 L2,-8 L8,-8 L3,-4 L5,2 L0,-2 L-5,2 L-3,-4 L-8,-8 L-2,-8Z" fill="#f0d78c" opacity="0.9"/>
-        <circle cx="0" cy="0" r="3" fill="#fff" opacity="0.5"/>
-      </g>
-      <g>
-        <path d="M60,270 C80,255 100,260 112,245" stroke="#4a2a1e" stroke-width="1.8" fill="none"/>
-        <g transform="translate(112,240)" class="petal-glow">
-          <circle cx="0" cy="0" r="11" fill="url(#roseGradR1)" opacity="0.85"/>
-          <path d="M-7,-6 Q0,-13 7,-6 Q10,-1 7,4 Q0,9 -7,4 Q-10,-1 -7,-6Z" fill="#e8556a" opacity="0.65"/>
-          <path d="M-4,-8 Q0,-12 4,-8 Q6,-4 4,0 Q0,3 -4,0 Q-6,-4 -4,-8Z" fill="#fde8f0" opacity="0.8"/>
-          <circle cx="0" cy="-2" r="3.5" fill="#f0d78c"/>
+        <g transform="translate(60,318)" class="gold-glow">
+          <circle cx="0" cy="0" r="9" fill="url(#gGR1)"/>
+          <path d="M0,-15 L2.5,-8 L9,-8 L4,-4 L6,3 L0,-2 L-6,3 L-4,-4 L-9,-8 L-2.5,-8Z" fill="#f0d78c" opacity="0.9"/>
+          <circle cx="0" cy="0" r="3.5" fill="#fff" opacity="0.5"/>
         </g>
-        <ellipse cx="96" cy="252" rx="7" ry="12" fill="#3a6a2a" opacity="0.7" transform="rotate(30 96 252)"/>
-      </g>
-      <g class="branch-float">
-        <path d="M60,180 C38,168 18,172 6,158" stroke="#4a2a1e" stroke-width="1.8" fill="none"/>
-        <g transform="translate(6,152)">
-          <circle cx="0" cy="0" r="7" fill="#fde8f0" opacity="0.9"/>
-          <circle cx="10" cy="-6" r="6" fill="#f2c4ce" opacity="0.85"/>
-          <circle cx="-8" cy="-4" r="6" fill="#e8a0b0" opacity="0.8"/>
-          <circle cx="4" cy="8" r="5" fill="#f2c4ce" opacity="0.75"/>
-          <circle cx="0" cy="0" r="2.5" fill="#c9a84c"/>
-          <circle cx="10" cy="-6" r="2" fill="#c9a84c"/>
-          <circle cx="-8" cy="-4" r="2" fill="#c9a84c"/>
+        <g>
+          <path d="M60,262 C81,246 102,251 114,236" stroke="#4a2a1e" stroke-width="1.8" fill="none"/>
+          <g transform="translate(114,230)" class="petal-glow">
+            <circle cx="0" cy="0" r="12" fill="url(#rGR1)" opacity="0.85"/>
+            <path d="M-8,-7 Q0,-14 8,-7 Q11,-1 8,5 Q0,10 -8,5 Q-11,-1 -8,-7Z" fill="#e8556a" opacity="0.65"/>
+            <path d="M-5,-9 Q0,-13 5,-9 Q7,-5 5,0 Q0,4 -5,0 Q-7,-5 -5,-9Z" fill="#fde8f0" opacity="0.8"/>
+            <circle cx="0" cy="-2" r="4" fill="#f0d78c"/>
+          </g>
+          <ellipse cx="98" cy="242" rx="7" ry="12" fill="#3a6a2a" opacity="0.7" transform="rotate(31 98 242)"/>
         </g>
-        <ellipse cx="20" cy="164" rx="6" ry="10" fill="#3a5e2a" opacity="0.7" transform="rotate(-25 20 164)"/>
-      </g>
-      <g transform="translate(60,80)" class="gold-glow">
-        <path d="M0,-20 L10,-5 L0,10 L-10,-5Z" fill="url(#goldGradR)" opacity="0.8"/>
-        <path d="M0,-12 L6,-3 L0,6 L-6,-3Z" fill="#f0d78c" opacity="0.6"/>
-        <circle cx="0" cy="-5" r="2" fill="#fff" opacity="0.7"/>
-      </g>
-      <circle cx="30" cy="640" r="3" fill="#f2c4ce" opacity="0.5"/>
-      <circle cx="85" cy="625" r="2.5" fill="#e8a0b0" opacity="0.4"/>
-      <circle cx="40" cy="440" r="2" fill="#f2c4ce" opacity="0.5"/>
-      <circle cx="90" cy="200" r="3" fill="#f0d78c" opacity="0.5"/>
-      <circle cx="35" cy="130" r="2" fill="#f2c4ce" opacity="0.4"/>
-      <path d="M75,300 Q80,295 78,305 Q73,308 75,300Z" fill="#f2c4ce" opacity="0.5"/>
-      <path d="M45,350 Q50,344 48,354 Q43,357 45,350Z" fill="#e8a0b0" opacity="0.4"/>
-      <path d="M85,430 Q90,424 88,434 Q83,437 85,430Z" fill="#f2c4ce" opacity="0.5"/>
-    </svg>
-  </div>
-</div>
+        <g class="branch-float">
+          <path d="M60,172 C37,159 16,163 4,149" stroke="#4a2a1e" stroke-width="1.8" fill="none"/>
+          <g transform="translate(4,142)">
+            <circle cx="0" cy="0" r="8" fill="#fde8f0" opacity="0.9"/>
+            <circle cx="12" cy="-7" r="7" fill="#f2c4ce" opacity="0.85"/>
+            <circle cx="-9" cy="-5" r="6" fill="#e8a0b0" opacity="0.8"/>
+            <circle cx="5" cy="9" r="6" fill="#f2c4ce" opacity="0.75"/>
+            <circle cx="0" cy="0" r="3" fill="#c9a84c"/>
+            <circle cx="12" cy="-7" r="2.5" fill="#c9a84c"/>
+            <circle cx="-9" cy="-5" r="2" fill="#c9a84c"/>
+          </g>
+          <ellipse cx="22" cy="157" rx="6" ry="10" fill="#3a5e2a" opacity="0.7" transform="rotate(-26 22 157)"/>
+        </g>
+        <g transform="translate(60,76)" class="gold-glow">
+          <path d="M0,-22 L11,-5 L0,12 L-11,-5Z" fill="url(#gGR1)" opacity="0.8"/>
+          <path d="M0,-13 L6,-3 L0,7 L-6,-3Z" fill="#f0d78c" opacity="0.65"/>
+          <circle cx="0" cy="-3" r="2.5" fill="#fff" opacity="0.7"/>
+        </g>
+        <circle cx="32" cy="624" r="3" fill="#f2c4ce" opacity="0.5"/>
+        <circle cx="88" cy="610" r="2.5" fill="#e8a0b0" opacity="0.4"/>
+        <circle cx="42" cy="428" r="2" fill="#f2c4ce" opacity="0.5"/>
+        <circle cx="92" cy="195" r="3" fill="#f0d78c" opacity="0.5"/>
+        <circle cx="36" cy="124" r="2" fill="#f2c4ce" opacity="0.4"/>
+        <path d="M78,293 Q83,288 81,298 Q76,301 78,293Z" fill="#f2c4ce" opacity="0.5"/>
+        <path d="M46,342 Q51,336 49,346 Q44,349 46,342Z" fill="#e8a0b0" opacity="0.4"/>
+        <path d="M88,418 Q93,412 91,422 Q86,425 88,418Z" fill="#f2c4ce" opacity="0.5"/>
+      </svg>
+    </div>
+
+  </div><!-- end #stage -->
+</div><!-- end #page-wrapper -->
 
 <script>
 /* ── STARS ── */
 const starsEl = document.getElementById('stars');
-for (let i = 0; i < 120; i++) {
+for (let i = 0; i < 130; i++) {
   const s = document.createElement('div');
   s.className = 'star';
-  const size = Math.random() * 2.5 + .5;
-  s.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${(Math.random()*3+1.5).toFixed(1)}s;--op:${(Math.random()*.8+.2).toFixed(2)};animation-delay:${(Math.random()*4).toFixed(1)}s;`;
+  const sz = Math.random() * 2.5 + .5;
+  s.style.cssText = `width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${(Math.random()*3+1.5).toFixed(1)}s;--op:${(Math.random()*.8+.2).toFixed(2)};animation-delay:${(Math.random()*4).toFixed(1)}s;`;
   starsEl.appendChild(s);
 }
 
-/* Fade in side panels */
+/* Fade in panels */
 setTimeout(() => {
   document.getElementById('leftPanel').classList.add('visible');
   document.getElementById('rightPanel').classList.add('visible');
-}, 300);
+}, 200);
 
 /* ── CAKE ── */
 function drawCake() {
   const canvas = document.getElementById('cake-canvas');
-  if (!canvas) return;
+  if (!canvas || canvas._started) return;
+  canvas._started = true;
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
-  let t = 0;
-  let candlesLit = true;
+  let t = 0, candlesLit = true;
 
   const COLORS = {
     frosting: '#fff5f7',
-    plate: '#c9a84c',
-    plateShine: '#f0d78c',
+    plate: '#c9a84c', plateShine: '#f0d78c',
     candle: ['#c8566e','#7ec8e3','#f0d78c','#a0d4b0','#e87ab3'],
     deco: '#c9a84c',
   };
@@ -837,92 +848,62 @@ function drawCake() {
     if (!candlesLit) return;
     candlesLit = false;
     spawnBurst();
-    setTimeout(() => { spawnFireworks(); }, 100);
+    setTimeout(spawnFireworks, 120);
   });
 
-  function drawCakeLayer(x, y, w, h, topColor, bodyColor, r) {
-    const grad = ctx.createLinearGradient(x, y, x+w, y);
-    grad.addColorStop(0, bodyColor);
-    grad.addColorStop(.4, topColor);
-    grad.addColorStop(1, bodyColor);
-    ctx.save();
-    ctx.shadowColor = 'rgba(60,10,40,.2)';
-    ctx.shadowBlur = 14;
-    ctx.beginPath();
-    ctx.roundRect(x, y, w, h, r);
-    ctx.fillStyle = grad;
-    ctx.fill();
-    ctx.restore();
-    ctx.save();
-    ctx.fillStyle = COLORS.frosting;
+  function drawLayer(x, y, w, h, topC, bodyC, r) {
+    const g = ctx.createLinearGradient(x, y, x+w, y);
+    g.addColorStop(0, bodyC); g.addColorStop(.4, topC); g.addColorStop(1, bodyC);
+    ctx.save(); ctx.shadowColor = 'rgba(60,10,40,.2)'; ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fillStyle = g; ctx.fill(); ctx.restore();
+    ctx.save(); ctx.fillStyle = COLORS.frosting;
     for (let i = 0; i < 5; i++) {
-      const dx = x + 12 + i * (w - 24) / 4;
-      const dh = 7 + Math.sin(i * 1.3) * 3;
-      ctx.beginPath();
-      ctx.ellipse(dx, y + 2, 6, dh, 0, 0, Math.PI * 2);
-      ctx.fill();
+      const dx = x + 12 + i*(w-24)/4;
+      ctx.beginPath(); ctx.ellipse(dx, y+2, 6, 7+Math.sin(i*1.3)*3, 0, 0, Math.PI*2); ctx.fill();
     }
     ctx.restore();
   }
 
-  function drawCandle(cx, baseY, color, lit, phase) {
-    const cw = 9, ch = 30;
+  function drawCandle(cx, baseY, color, lit, ph) {
+    const cw=9, ch=30;
     ctx.save();
-    const cg = ctx.createLinearGradient(cx - cw/2, 0, cx + cw/2, 0);
-    cg.addColorStop(0, color); cg.addColorStop(.5, '#fff8'); cg.addColorStop(1, color);
-    ctx.fillStyle = cg;
-    ctx.beginPath(); ctx.roundRect(cx - cw/2, baseY - ch, cw, ch, 3); ctx.fill();
-    ctx.restore();
-    ctx.save(); ctx.strokeStyle = '#5a3020'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(cx, baseY - ch); ctx.lineTo(cx, baseY - ch - 5); ctx.stroke();
-    ctx.restore();
+    const cg = ctx.createLinearGradient(cx-cw/2,0,cx+cw/2,0);
+    cg.addColorStop(0,color); cg.addColorStop(.5,'#fff8'); cg.addColorStop(1,color);
+    ctx.fillStyle = cg; ctx.beginPath(); ctx.roundRect(cx-cw/2,baseY-ch,cw,ch,3); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.strokeStyle='#5a3020'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(cx,baseY-ch); ctx.lineTo(cx,baseY-ch-5); ctx.stroke(); ctx.restore();
     if (lit) {
-      const flicker = Math.sin(t * 4 + phase) * 2;
-      const fh = 14 + flicker;
-      const fw = 6 + Math.abs(Math.sin(t * 3 + phase)) * 2;
-      ctx.save();
-      ctx.shadowColor = '#ffaa00'; ctx.shadowBlur = 16 + Math.abs(flicker) * 3;
-      const fg = ctx.createRadialGradient(cx, baseY - ch - fh*.6, 1, cx, baseY - ch - fh*.4, fh);
-      fg.addColorStop(0, '#ffffff'); fg.addColorStop(.2, '#ffe066');
-      fg.addColorStop(.6, '#ff8800'); fg.addColorStop(1, 'rgba(255,60,0,0)');
-      ctx.fillStyle = fg;
-      ctx.beginPath();
-      ctx.moveTo(cx, baseY - ch - fh);
-      ctx.bezierCurveTo(cx + fw, baseY - ch - fh*.5, cx + fw*.6, baseY - ch, cx, baseY - ch - 2);
-      ctx.bezierCurveTo(cx - fw*.6, baseY - ch, cx - fw, baseY - ch - fh*.5, cx, baseY - ch - fh);
+      const fl=Math.sin(t*4+ph)*2, fh=14+fl, fw=6+Math.abs(Math.sin(t*3+ph))*2;
+      ctx.save(); ctx.shadowColor='#ffaa00'; ctx.shadowBlur=16+Math.abs(fl)*3;
+      const fg=ctx.createRadialGradient(cx,baseY-ch-fh*.6,1,cx,baseY-ch-fh*.4,fh);
+      fg.addColorStop(0,'#fff'); fg.addColorStop(.2,'#ffe066'); fg.addColorStop(.6,'#ff8800'); fg.addColorStop(1,'rgba(255,60,0,0)');
+      ctx.fillStyle=fg;
+      ctx.beginPath(); ctx.moveTo(cx,baseY-ch-fh);
+      ctx.bezierCurveTo(cx+fw,baseY-ch-fh*.5,cx+fw*.6,baseY-ch,cx,baseY-ch-2);
+      ctx.bezierCurveTo(cx-fw*.6,baseY-ch,cx-fw,baseY-ch-fh*.5,cx,baseY-ch-fh);
       ctx.fill(); ctx.restore();
     }
   }
 
   function frame() {
-    ctx.clearRect(0, 0, W, H);
-    t += 0.03;
-    const cx = W / 2;
-    ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,.2)'; ctx.shadowBlur = 16;
-    const pg = ctx.createLinearGradient(cx-75, 0, cx+75, 0);
-    pg.addColorStop(0, COLORS.plate); pg.addColorStop(.45, COLORS.plateShine); pg.addColorStop(1, COLORS.plate);
-    ctx.fillStyle = pg;
-    ctx.beginPath(); ctx.ellipse(cx, H - 20, 80, 12, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-    drawCakeLayer(cx - 62, H - 72, 124, 52, '#f7d0dc', '#e8a0b0', [5,5,12,12]);
-    drawCakeLayer(cx - 48, H - 118, 96, 46, '#fde8f0', '#f2c4ce', [5,5,10,10]);
-    drawCakeLayer(cx - 32, H - 156, 64, 38, '#fdf0f4', '#f5d0dc', [8,8,8,8]);
-    // Gold dots
-    ctx.save(); ctx.fillStyle = COLORS.deco;
-    [H-56, H-104].forEach(y => {
-      for (let i = 0; i < 7; i++) {
-        ctx.beginPath(); ctx.arc(cx - 36 + i*12, y, 2.5, 0, Math.PI*2); ctx.fill();
-      }
-    });
-    ctx.restore();
-    const cps = [cx-20, cx-10, cx, cx+10, cx+20];
-    cps.forEach((x, i) => drawCandle(x, H-156, COLORS.candle[i], candlesLit, i*0.8));
-    // Heart decos
-    ctx.save(); ctx.font = '10px serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#c8566e';
-    const hb = Math.sin(t*2)*2;
-    ctx.fillText('\u2665', cx-52, H-84+hb); ctx.fillText('\u2665', cx+52, H-84-hb);
-    ctx.fillText('\u2665', cx-38, H-132+hb); ctx.fillText('\u2665', cx+38, H-132-hb);
+    ctx.clearRect(0,0,W,H); t+=.03;
+    const cx=W/2;
+    ctx.save(); ctx.shadowColor='rgba(0,0,0,.2)'; ctx.shadowBlur=16;
+    const pg=ctx.createLinearGradient(cx-75,0,cx+75,0);
+    pg.addColorStop(0,COLORS.plate); pg.addColorStop(.45,COLORS.plateShine); pg.addColorStop(1,COLORS.plate);
+    ctx.fillStyle=pg; ctx.beginPath(); ctx.ellipse(cx,H-20,80,12,0,0,Math.PI*2); ctx.fill(); ctx.restore();
+    drawLayer(cx-62,H-72,124,52,'#f7d0dc','#e8a0b0',[5,5,12,12]);
+    drawLayer(cx-48,H-118,96,46,'#fde8f0','#f2c4ce',[5,5,10,10]);
+    drawLayer(cx-32,H-156,64,38,'#fdf0f4','#f5d0dc',[8,8,8,8]);
+    ctx.save(); ctx.fillStyle=COLORS.deco;
+    [H-56,H-104].forEach(y=>{
+      for(let i=0;i<7;i++){ctx.beginPath();ctx.arc(cx-36+i*12,y,2.5,0,Math.PI*2);ctx.fill();}
+    }); ctx.restore();
+    [cx-20,cx-10,cx,cx+10,cx+20].forEach((x,i)=>drawCandle(x,H-156,COLORS.candle[i],candlesLit,i*.8));
+    ctx.save(); ctx.font='10px serif'; ctx.textAlign='center'; ctx.fillStyle='#c8566e';
+    const hb=Math.sin(t*2)*2;
+    ctx.fillText('\u2665',cx-52,H-84+hb); ctx.fillText('\u2665',cx+52,H-84-hb);
+    ctx.fillText('\u2665',cx-38,H-132+hb); ctx.fillText('\u2665',cx+38,H-132-hb);
     ctx.restore();
     requestAnimationFrame(frame);
   }
@@ -930,129 +911,69 @@ function drawCake() {
 }
 
 /* ── FIREWORKS ── */
-const fwCanvas = document.getElementById('fireworks-canvas');
-const fwCtx = fwCanvas.getContext('2d');
-let fwActive = false, fwParticles = [], fwRockets = [];
-
-function resizeFW() { fwCanvas.width = window.innerWidth; fwCanvas.height = window.innerHeight; }
-resizeFW();
-window.addEventListener('resize', resizeFW);
-
-function randomColor() {
-  const hues = [0,30,45,60,200,320,280,10];
-  return `hsl(${hues[Math.floor(Math.random()*hues.length)] + Math.random()*20}, 90%, 65%)`;
+const fwC = document.getElementById('fireworks-canvas');
+const fwX = fwC.getContext('2d');
+let fwActive=false, fwP=[], fwR=[];
+function resizeFW(){fwC.width=window.innerWidth;fwC.height=window.innerHeight;}
+resizeFW(); window.addEventListener('resize',resizeFW);
+function rCol(){const h=[0,30,45,60,200,320,280,10];return `hsl(${h[Math.floor(Math.random()*h.length)]+Math.random()*20},90%,65%)`;}
+function launchR(x){fwR.push({x:x||Math.random()*fwC.width,y:fwC.height,vy:-(Math.random()*8+10),vx:(Math.random()-.5)*2,targetY:fwC.height*(Math.random()*.3+.1),color:rCol(),trail:[]});}
+function explode(x,y,c){
+  const n=Math.floor(Math.random()*40+60);
+  for(let i=0;i<n;i++){const a=(Math.PI*2/n)*i+Math.random()*.3,sp=Math.random()*5+2;fwP.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,color:c,alpha:1,size:Math.random()*3+1.5,decay:Math.random()*.015+.012,gravity:.12});}
+  for(let i=0;i<18;i++){const a=Math.random()*Math.PI*2,sp=Math.random()*2.5;fwP.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,color:'#fff',alpha:1,size:Math.random()*2+.5,decay:Math.random()*.025+.018,gravity:.08});}
 }
-
-function launchRocket(x) {
-  fwRockets.push({
-    x: x || Math.random()*fwCanvas.width,
-    y: fwCanvas.height,
-    vy: -(Math.random()*8+10), vx: (Math.random()-.5)*2,
-    targetY: fwCanvas.height*(Math.random()*.3+.1),
-    color: randomColor(), trail: []
-  });
+function fwFrame(){
+  fwX.clearRect(0,0,fwC.width,fwC.height);
+  for(let i=fwR.length-1;i>=0;i--){
+    const r=fwR[i]; r.trail.push({x:r.x,y:r.y}); if(r.trail.length>10)r.trail.shift();
+    r.trail.forEach((pt,ti)=>{fwX.save();fwX.globalAlpha=(ti/r.trail.length)*.7;fwX.fillStyle=r.color;fwX.beginPath();fwX.arc(pt.x,pt.y,2,0,Math.PI*2);fwX.fill();fwX.restore();});
+    fwX.save();fwX.shadowColor=r.color;fwX.shadowBlur=10;fwX.fillStyle='#fff';fwX.beginPath();fwX.arc(r.x,r.y,3,0,Math.PI*2);fwX.fill();fwX.restore();
+    r.x+=r.vx;r.y+=r.vy;r.vy+=.2;
+    if(r.y<=r.targetY||r.vy>=0){explode(r.x,r.y,r.color);fwR.splice(i,1);}
+  }
+  for(let i=fwP.length-1;i>=0;i--){
+    const p=fwP[i];
+    fwX.save();fwX.globalAlpha=p.alpha;fwX.shadowColor=p.color;fwX.shadowBlur=6;fwX.fillStyle=p.color;fwX.beginPath();fwX.arc(p.x,p.y,p.size,0,Math.PI*2);fwX.fill();fwX.restore();
+    p.x+=p.vx;p.y+=p.vy;p.vy+=p.gravity;p.vx*=.98;p.alpha-=p.decay;p.size*=.98;
+    if(p.alpha<=0)fwP.splice(i,1);
+  }
+  if(fwActive||fwR.length>0||fwP.length>0) requestAnimationFrame(fwFrame);
+  else fwX.clearRect(0,0,fwC.width,fwC.height);
 }
-
-function explode(x, y, color) {
-  const count = Math.floor(Math.random()*40+60);
-  for (let i = 0; i < count; i++) {
-    const angle = (Math.PI*2/count)*i + Math.random()*.3;
-    const speed = Math.random()*5+2;
-    fwParticles.push({ x, y, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed, color, alpha: 1, size: Math.random()*3+1.5, decay: Math.random()*.015+.012, gravity: .12 });
-  }
-  for (let i = 0; i < 18; i++) {
-    const angle = Math.random()*Math.PI*2, speed = Math.random()*2.5;
-    fwParticles.push({ x, y, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed, color: '#fff', alpha: 1, size: Math.random()*2+.5, decay: Math.random()*.025+.018, gravity: .08 });
-  }
-}
-
-function fireworksFrame() {
-  // Use clearRect + low opacity rect for faster trail fade — eliminates heavy black overlay
-  fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
-
-  for (let i = fwRockets.length-1; i >= 0; i--) {
-    const r = fwRockets[i];
-    r.trail.push({x:r.x, y:r.y});
-    if (r.trail.length > 10) r.trail.shift();
-    r.trail.forEach((pt, ti) => {
-      fwCtx.save(); fwCtx.globalAlpha = (ti/r.trail.length)*.7;
-      fwCtx.fillStyle = r.color;
-      fwCtx.beginPath(); fwCtx.arc(pt.x, pt.y, 2, 0, Math.PI*2); fwCtx.fill(); fwCtx.restore();
-    });
-    fwCtx.save(); fwCtx.shadowColor = r.color; fwCtx.shadowBlur = 10;
-    fwCtx.fillStyle = '#fff';
-    fwCtx.beginPath(); fwCtx.arc(r.x, r.y, 3, 0, Math.PI*2); fwCtx.fill(); fwCtx.restore();
-    r.x += r.vx; r.y += r.vy; r.vy += .2;
-    if (r.y <= r.targetY || r.vy >= 0) { explode(r.x, r.y, r.color); fwRockets.splice(i,1); }
-  }
-
-  for (let i = fwParticles.length-1; i >= 0; i--) {
-    const p = fwParticles[i];
-    fwCtx.save(); fwCtx.globalAlpha = p.alpha; fwCtx.shadowColor = p.color; fwCtx.shadowBlur = 6;
-    fwCtx.fillStyle = p.color;
-    fwCtx.beginPath(); fwCtx.arc(p.x, p.y, p.size, 0, Math.PI*2); fwCtx.fill(); fwCtx.restore();
-    p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.vx *= .98;
-    p.alpha -= p.decay; p.size *= .98;
-    if (p.alpha <= 0) fwParticles.splice(i,1);
-  }
-
-  if (fwActive || fwRockets.length > 0 || fwParticles.length > 0) {
-    requestAnimationFrame(fireworksFrame);
-  } else {
-    fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
-  }
-}
-
-function spawnFireworks() {
-  if (fwActive) return;
-  fwActive = true; fwParticles = []; fwRockets = [];
-  let count = 0;
-  const iv = setInterval(() => {
-    launchRocket();
-    count++;
-    if (count >= 14) { clearInterval(iv); setTimeout(() => { fwActive = false; }, 2500); }
-  }, 280);
-  fireworksFrame();
+function spawnFireworks(){
+  if(fwActive)return; fwActive=true; fwP=[]; fwR=[];
+  let n=0; const iv=setInterval(()=>{launchR();n++;if(n>=14){clearInterval(iv);setTimeout(()=>{fwActive=false;},2600);}},280);
+  fwFrame();
 }
 
 /* ── CONFETTI ── */
-function spawnConfetti() {
-  const layer = document.getElementById('confetti-layer');
-  const colors = ['#c8566e','#f2c4ce','#c9a84c','#f0d78c','#a0d4b0','#7ec8e3','#e87ab3','#fff'];
-  const shapes = ['50%','2px','50% 50% 0 0'];
-  for (let i = 0; i < 90; i++) {
-    const el = document.createElement('div');
-    el.className = 'confetti-piece';
-    el.style.cssText = `--c:${colors[Math.floor(Math.random()*colors.length)]};--w:${Math.random()*8+4}px;--h:${Math.random()*12+6}px;--r:${shapes[Math.floor(Math.random()*shapes.length)]};--x:${Math.random()*100}vw;--rot:${Math.random()*360}deg;--dur:${(Math.random()*2+2).toFixed(1)}s;--delay:${(Math.random()*1.5).toFixed(2)}s;`;
-    layer.appendChild(el);
-    setTimeout(() => el.remove(), 4500);
+function spawnConfetti(){
+  const l=document.getElementById('confetti-layer');
+  const cols=['#c8566e','#f2c4ce','#c9a84c','#f0d78c','#a0d4b0','#7ec8e3','#e87ab3','#fff'];
+  const sh=['50%','2px','50% 50% 0 0'];
+  for(let i=0;i<90;i++){
+    const el=document.createElement('div'); el.className='confetti-piece';
+    el.style.cssText=`--c:${cols[Math.floor(Math.random()*cols.length)]};--w:${Math.random()*8+4}px;--h:${Math.random()*12+6}px;--r:${sh[Math.floor(Math.random()*sh.length)]};--x:${Math.random()*100}vw;--rot:${Math.random()*360}deg;--dur:${(Math.random()*2+2).toFixed(1)}s;--delay:${(Math.random()*1.5).toFixed(2)}s;`;
+    l.appendChild(el); setTimeout(()=>el.remove(),4600);
   }
 }
-
-function spawnPetals() {
-  const layer = document.getElementById('confetti-layer');
-  // Use ASCII / unicode chars that render safely
-  const petalChars = ['\u2728','\u2605','\u25C6'];
-  const colors = ['#f2c4ce','#e8a0b0','#c8566e','#f0d78c'];
-  for (let i = 0; i < 22; i++) {
-    const el = document.createElement('div');
-    el.className = 'petal-fall';
-    el.style.cssText = `--x:${Math.random()*100}vw;--s:${Math.random()*14+10}px;--dur:${(Math.random()*3+3).toFixed(1)}s;--delay:${(Math.random()).toFixed(2)}s;color:${colors[Math.floor(Math.random()*colors.length)]};`;
-    el.textContent = petalChars[Math.floor(Math.random()*petalChars.length)];
-    layer.appendChild(el);
-    setTimeout(() => el.remove(), 7000);
+function spawnPetals(){
+  const l=document.getElementById('confetti-layer');
+  const ch=['\u2728','\u2605','\u25C6'], cols=['#f2c4ce','#e8a0b0','#c8566e','#f0d78c'];
+  for(let i=0;i<24;i++){
+    const el=document.createElement('div'); el.className='petal-fall';
+    el.style.cssText=`--x:${Math.random()*100}vw;--s:${Math.random()*14+10}px;--dur:${(Math.random()*3+3).toFixed(1)}s;--delay:${Math.random().toFixed(2)}s;color:${cols[Math.floor(Math.random()*cols.length)]};`;
+    el.textContent=ch[Math.floor(Math.random()*ch.length)]; l.appendChild(el); setTimeout(()=>el.remove(),7000);
   }
 }
-
-function spawnBurst() {
-  const layer = document.getElementById('burst-layer');
-  const colors = ['#c8566e','#f2c4ce','#c9a84c','#f0d78c','#fff','#e87ab3'];
-  for (let i = 0; i < 40; i++) {
-    const el = document.createElement('div');
-    el.className = 'burst-dot';
-    el.style.cssText = `--c:${colors[Math.floor(Math.random()*colors.length)]};--s:${Math.random()*8+4}px;--a:${Math.random()*360}deg;--dist:${Math.random()*180+80}px;--dur:${(Math.random()*.6+.5).toFixed(2)}s;--delay:${(Math.random()*.3).toFixed(2)}s;`;
-    layer.appendChild(el);
-    setTimeout(() => el.remove(), 1500);
+function spawnBurst(){
+  const l=document.getElementById('burst-layer');
+  const cols=['#c8566e','#f2c4ce','#c9a84c','#f0d78c','#fff','#e87ab3'];
+  for(let i=0;i<42;i++){
+    const el=document.createElement('div'); el.className='burst-dot';
+    el.style.cssText=`--c:${cols[Math.floor(Math.random()*cols.length)]};--s:${Math.random()*8+4}px;--a:${Math.random()*360}deg;--dist:${Math.random()*180+80}px;--dur:${(Math.random()*.6+.5).toFixed(2)}s;--delay:${(Math.random()*.3).toFixed(2)}s;`;
+    l.appendChild(el); setTimeout(()=>el.remove(),1600);
   }
 }
 
@@ -1062,47 +983,48 @@ let opened = false;
 document.getElementById('envelope-wrap').addEventListener('click', function() {
   if (opened) return;
   opened = true;
-  document.getElementById('hint').style.display = 'none';
 
-  const env = document.getElementById('envelopeEl');
-  const letter = document.getElementById('letter');
-  const seal = document.querySelector('.seal');
+  const envWrap = document.getElementById('envelope-wrap');
+  const env     = document.getElementById('envelopeEl');
+  const letter  = document.getElementById('letter');
+  const hint    = document.getElementById('hint');
+  const seal    = document.querySelector('.seal');
 
-  seal.style.cssText += 'transition:transform .3s ease,opacity .3s ease;transform:translate(-50%,-50%) scale(1.3);opacity:0;';
+  envWrap.classList.add('is-open');
+  hint.classList.add('hidden');
+
+  // Pop seal
+  seal.style.transform = 'translate(-50%,-50%) scale(1.35)';
+  seal.style.opacity = '0';
   spawnBurst();
 
+  // Open flap
   setTimeout(() => {
-    const flap = env.querySelector('.env-flap');
-    flap.style.transition = 'transform .6s cubic-bezier(.4,0,.2,1)';
-    flap.style.transform = 'rotateX(-180deg)';
-  }, 250);
+    env.querySelector('.env-flap').style.transform = 'rotateX(-180deg)';
+  }, 220);
 
-  // Letter rises quickly
+  // Hide envelope
   setTimeout(() => {
-    letter.classList.add('open');
-    letter.style.cssText += 'transition:opacity .4s ease,transform .6s cubic-bezier(.2,.8,.3,1);opacity:1;transform:translateX(-50%) translateY(-65%) scaleY(1);pointer-events:auto;';
-  }, 600);
+    env.classList.add('hiding');
+    hint.style.display = 'none';
+  }, 720);
 
-  // Envelope fades fast
-  setTimeout(() => {
-    env.style.cssText += 'transition:transform .4s ease,opacity .4s ease;transform:translateY(35px) scale(.94);opacity:0;pointer-events:none;';
-  }, 850);
-
-  // Settle letter into position fast
-  setTimeout(() => {
-    env.style.display = 'none';
-    letter.style.transition = 'transform .4s cubic-bezier(.3,1.2,.5,1),box-shadow .3s ease';
-    letter.style.transform = 'translateX(-50%) translateY(-78%) scaleY(1)';
-    document.body.classList.add('opened');
-  }, 1150);
-
-  // Celebrations at 700ms — no long black wait
+  // Celebrations
   setTimeout(() => {
     spawnConfetti();
     spawnPetals();
     spawnFireworks();
-  }, 700);
+  }, 680);
 
+  // Show letter in normal document flow
+  setTimeout(() => {
+    letter.style.display = 'block';
+    // Force reflow so transition kicks in
+    letter.offsetHeight;
+    letter.classList.add('visible');
+  }, 950);
+
+  // Animate letter contents in sequence
   const targets = [
     '.letter-top-ornament','.letter-deco','.letter-divider','.letter-greeting',
     '.letter-body p:nth-child(1)','.letter-body p:nth-child(2)',
@@ -1113,12 +1035,12 @@ document.getElementById('envelope-wrap').addEventListener('click', function() {
     setTimeout(() => {
       letter.querySelectorAll(sel).forEach(el => el.classList.add('show'));
       if (sel === '#cake-section') drawCake();
-    }, 1400 + i * 200);
+    }, 1300 + i * 190);
   });
 });
 
-document.addEventListener('click', function(e) {
-  if (opened && e.target.closest('#letter') && Math.random() > .72) spawnBurst();
+document.addEventListener('click', e => {
+  if (opened && e.target.closest('#letter') && Math.random() > .74) spawnBurst();
 });
 </script>
 </body>
